@@ -1,5 +1,7 @@
-package com.tkroman.kerl
+package com.tkroman.kerl.registry
 
+import com.tkroman.kerl.badrpc
+import com.tkroman.kerl.model.RpcMethod
 import io.appulse.encon.terms.ErlangTerm
 
 class MapBasedRpcRegistry(

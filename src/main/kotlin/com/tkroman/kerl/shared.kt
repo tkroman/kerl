@@ -1,5 +1,6 @@
 package com.tkroman.kerl
 
+import com.tkroman.kerl.model.RpcMethod
 import io.appulse.encon.terms.Erlang.atom
 import io.appulse.encon.terms.Erlang.bstring
 import io.appulse.encon.terms.Erlang.tuple

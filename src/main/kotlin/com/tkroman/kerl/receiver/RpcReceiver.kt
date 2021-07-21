@@ -1,5 +1,6 @@
-package com.tkroman.kerl
+package com.tkroman.kerl.receiver
 
+import com.tkroman.kerl.executor.RpcExecutor
 import io.appulse.encon.Node
 import java.io.Closeable
 import java.util.concurrent.ArrayBlockingQueue
