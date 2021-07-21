@@ -37,7 +37,6 @@ class RpcExecutor(
             }
             if (result == null) {
                 logger.error("Don't know how to reply to $body (parsed call: $call)")
-                return@execute
             } else {
                 origin.send(result.first, result.second)
             }
