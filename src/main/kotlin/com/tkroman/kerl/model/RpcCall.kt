@@ -1,18 +1,18 @@
 package com.tkroman.kerl.model
 
-import io.appulse.encon.terms.ErlangTerm
+import io.appulse.encon.terms.type.ErlangList
 
 sealed interface RpcCall {
-    val sender: RpcSender
+    val callType: RpcCallType
 }
 
 data class ValidRpcCall(
-    override val sender: RpcSender,
-    val args: ErlangTerm,
+    override val callType: RpcCallType,
     val method: RpcMethod,
+    val args: ErlangList,
 ) : RpcCall
 
 data class InvalidRpcCall(
+    override val callType: RpcCallType,
     val reason: String,
-    override val sender: RpcSender,
 ) : RpcCall

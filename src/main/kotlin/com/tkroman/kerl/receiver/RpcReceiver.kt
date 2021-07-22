@@ -1,29 +1,31 @@
 package com.tkroman.kerl.receiver
 
 import com.tkroman.kerl.executor.RpcExecutor
-import io.appulse.encon.Node
+import io.appulse.encon.mailbox.Mailbox
+import org.slf4j.LoggerFactory
 import java.io.Closeable
-import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
-
 class RpcReceiver(
-    node: Node,
-    private val rpcExecutor: RpcExecutor,
+    source: Mailbox,
+    rpcExecutor: RpcExecutor,
 ) : Closeable {
-    private val rex = node
-        .mailbox()
-        .queue(ArrayBlockingQueue(4096))
-        .name("rex")
-        .build()
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val pollForExecution: () -> Unit = {
-        rex.receive(1, TimeUnit.MILLISECONDS)?.also {
-            rpcExecutor.executeAsync(it.body, rex)
+        val received = source.receive(1, TimeUnit.MILLISECONDS)
+        if (received != null) {
+            rpcExecutor.execute(received.body).handle { r, t ->
+                when {
+                    t != null -> logger.error("Failed to execute $received", t)
+                    r == null -> logger.error("Can't reply to $received - failed to parse")
+                    else -> source.send(r.first, r.second)
+                }
+            }
         }
     }
 
@@ -34,14 +36,13 @@ class RpcReceiver(
             override fun newThread(r: Runnable): Thread {
                 return tf.newThread(r).also { it.isDaemon = true }
             }
-
         }
     )
 
     private val scheduled = AtomicReference<ScheduledFuture<*>>(null)
 
     fun start() {
-        scheduled.compareAndSet(
+        val started = scheduled.compareAndSet(
             null,
             poller.scheduleWithFixedDelay(
                 pollForExecution,
@@ -50,6 +51,9 @@ class RpcReceiver(
                 TimeUnit.MILLISECONDS
             )
         )
+        require(started) {
+            "Couldn't start RpcReceiver. Make sure it was stopped correctly before reuse"
+        }
     }
 
     override fun close() {

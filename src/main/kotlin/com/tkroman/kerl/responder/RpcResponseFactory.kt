@@ -1,9 +1,9 @@
 package com.tkroman.kerl.responder
 
-import com.tkroman.kerl.model.RpcSender
+import com.tkroman.kerl.model.RpcCallType
 import io.appulse.encon.terms.ErlangTerm
 import io.appulse.encon.terms.type.ErlangPid
 
 interface RpcResponseFactory {
-    fun constructReply(sender: RpcSender, result: ErlangTerm): Pair<ErlangPid, ErlangTerm>?
+    fun constructReply(sender: RpcCallType, result: ErlangTerm): Pair<ErlangPid, ErlangTerm>?
 }

@@ -18,6 +18,8 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.7.30")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testImplementation(kotlin("test"))
+    testImplementation("io.mockk:mockk:1.12.0")
+    testImplementation("org.awaitility:awaitility-kotlin:4.1.0")
 }
 
 tasks.getByName<Test>("test") {

@@ -14,10 +14,8 @@ internal val GEN_CALL = atom("\$gen_call")
 internal val CALL = atom("call")
 internal val REX = atom("rex")
 
-internal val UNDEFINED_RPC_METHOD = RpcMethod("<n/a>", "<n/a>")
-
 internal fun ErlangTerm.eget(i: Int): ErlangTerm? {
-    return if (i > 0 && i < size()) {
+    return if (i >= 0 && i < size()) {
         getUnsafe(i)
     } else {
         null
