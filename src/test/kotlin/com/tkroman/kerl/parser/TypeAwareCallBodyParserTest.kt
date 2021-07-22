@@ -5,6 +5,7 @@ import com.tkroman.kerl.GEN_CALL_TYPE
 import com.tkroman.kerl.REX_CALL_TYPE
 import com.tkroman.kerl.model.InvalidRpcCall
 import com.tkroman.kerl.model.RpcMethod
+import com.tkroman.kerl.model.Unknown
 import com.tkroman.kerl.model.ValidRpcCall
 import io.appulse.encon.terms.Erlang.NIL
 import io.appulse.encon.terms.Erlang.atom
@@ -144,6 +145,15 @@ internal class TypeAwareCallBodyParserTest {
         assertEquals(
             InvalidRpcCall(GEN_CALL_TYPE, "invalid call section"),
             parser.parse(call, GEN_CALL_TYPE)
+        )
+    }
+
+    @Test
+    fun `unknown call type`() {
+        val result = parser.parse(atom("doesnt-matter"), Unknown)
+        assertEquals(
+            InvalidRpcCall(Unknown, "unknown call type"),
+            result
         )
     }
 }

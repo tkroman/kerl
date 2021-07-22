@@ -1,8 +1,8 @@
 package com.tkroman.kerl.executor
 
+import com.tkroman.kerl.REX
 import com.tkroman.kerl.SENDER_PID
 import com.tkroman.kerl.SENDER_REF
-import com.tkroman.kerl.REX
 import com.tkroman.kerl.model.RpcMethod
 import com.tkroman.kerl.parser.AggregateRpcCallParser
 import com.tkroman.kerl.registry.MapBasedRpcRegistry
@@ -45,5 +45,12 @@ internal class SyncRpcCallExecutorTest {
             SENDER_PID to tuple(REX, ATOM_TRUE),
             result.get()
         )
+    }
+
+    @Test
+    fun `invalid call`() {
+        val result = syncRpcCallExecutor.execute(tuple(atom("something-invalid")))
+        assertTrue(result.isDone)
+        assertEquals(null, result.get())
     }
 }

@@ -61,4 +61,17 @@ internal class AsyncRpcCallExecutorTest {
                 )
             }
     }
+
+    @Test
+    fun `invalid call`() {
+        val result = asyncRpcCallExecutor.execute(Erlang.tuple(Erlang.atom("something-invalid")))
+        await
+            .atMost(500, TimeUnit.MILLISECONDS)
+            .pollDelay(5, TimeUnit.MILLISECONDS)
+            .pollInterval(5, TimeUnit.MILLISECONDS)
+            .untilAsserted {
+                assertTrue(result.isDone)
+                assertEquals(null, result.get())
+            }
+    }
 }

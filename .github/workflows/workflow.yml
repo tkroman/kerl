@@ -27,7 +27,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Test
-        run: ./gradlew test jacocoTestReport
+        run: ./gradlew --no-daemon test jacocoTestReport
       - uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
