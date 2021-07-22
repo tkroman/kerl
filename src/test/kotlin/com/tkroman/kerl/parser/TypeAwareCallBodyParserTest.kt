@@ -175,7 +175,7 @@ internal class TypeAwareCallBodyParserTest {
         val call = tuple(
             CALL,
             atom("foo"),
-            bstring("")
+            atom("")
         )
         assertEquals(
             InvalidRpcCall(REX_CALL_TYPE, "no function"),
