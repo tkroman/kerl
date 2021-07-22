@@ -12,7 +12,7 @@ internal val CALL = atom("call")
 internal val REX = atom("rex")
 
 internal fun ErlangTerm.eget(i: Int): ErlangTerm? {
-    return if (i >= 0 && i < size()) {
+    return if ((isList || isTuple) && (i >= 0 && i < size())) {
         getUnsafe(i)
     } else {
         null
