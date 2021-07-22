@@ -15,7 +15,7 @@ internal fun ErlangTerm.eget(i: Int): ErlangTerm? {
     if (!(isList || isTuple)) {
         return null
     }
-    if (i < 0 || i > size()) {
+    if (i < 0 || i >= size()) {
         return null
     }
     return getUnsafe(i)
