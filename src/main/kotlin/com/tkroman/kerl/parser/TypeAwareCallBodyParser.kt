@@ -30,7 +30,7 @@ class TypeAwareCallBodyParser {
         val function = call
             .eget(2)
             ?.asAtom()
-            ?.asText()
+            ?.asText(null)
             ?.takeIf { it.isNotBlank() }
             ?: return InvalidRpcCall(callType, "no function")
 
