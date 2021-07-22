@@ -52,7 +52,7 @@ internal class RpcReceiverTest {
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
             .pollInterval(5, TimeUnit.MILLISECONDS)
-            .timeout(750, TimeUnit.MILLISECONDS)
+            .timeout(1, TimeUnit.SECONDS)
             .during(500, TimeUnit.MILLISECONDS)
             .untilAsserted {
                 verify(atLeast = 1) { mailbox.receive(1L, TimeUnit.MILLISECONDS) }
@@ -83,7 +83,7 @@ internal class RpcReceiverTest {
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
             .pollInterval(5, TimeUnit.MILLISECONDS)
-            .timeout(750, TimeUnit.MILLISECONDS)
+            .timeout(1, TimeUnit.SECONDS)
             .during(500, TimeUnit.MILLISECONDS)
             .untilAsserted {
                 verify(atLeast = 1) { mailbox.receive(1L, TimeUnit.MILLISECONDS) }
@@ -114,7 +114,7 @@ internal class RpcReceiverTest {
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
             .pollInterval(5, TimeUnit.MILLISECONDS)
-            .timeout(750, TimeUnit.MILLISECONDS)
+            .timeout(1, TimeUnit.SECONDS)
             .during(500, TimeUnit.MILLISECONDS)
             .untilAsserted {
                 verify(atLeast = 1) { mailbox.receive(1L, TimeUnit.MILLISECONDS) }
