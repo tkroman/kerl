@@ -11,7 +11,9 @@ import io.appulse.encon.terms.Erlang.NIL
 import io.appulse.encon.terms.Erlang.atom
 import io.appulse.encon.terms.Erlang.bstring
 import io.appulse.encon.terms.Erlang.list
+import io.appulse.encon.terms.Erlang.map
 import io.appulse.encon.terms.Erlang.tuple
+import io.appulse.encon.terms.type.ErlangAtom.ATOM_FALSE
 import io.appulse.encon.terms.type.ErlangAtom.ATOM_TRUE
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -122,10 +124,42 @@ internal class TypeAwareCallBodyParserTest {
     }
 
     @Test
-    fun `module is not an atom - invalid rpc call`() {
+    fun `module is a bstring - invalid rpc call`() {
         val call = tuple(
             CALL,
             bstring("not-an-atom")
+        )
+        assertEquals(
+            InvalidRpcCall(REX_CALL_TYPE, "no module"),
+            parser.parse(call, REX_CALL_TYPE)
+        )
+        assertEquals(
+            InvalidRpcCall(GEN_CALL_TYPE, "no module"),
+            parser.parse(call, GEN_CALL_TYPE)
+        )
+    }
+
+    @Test
+    fun `module is a list - invalid rpc call`() {
+        val call = tuple(
+            CALL,
+            list(ATOM_TRUE)
+        )
+        assertEquals(
+            InvalidRpcCall(REX_CALL_TYPE, "no module"),
+            parser.parse(call, REX_CALL_TYPE)
+        )
+        assertEquals(
+            InvalidRpcCall(GEN_CALL_TYPE, "no module"),
+            parser.parse(call, GEN_CALL_TYPE)
+        )
+    }
+
+    @Test
+    fun `module is a map - invalid rpc call`() {
+        val call = tuple(
+            CALL,
+            map(ATOM_TRUE, ATOM_FALSE)
         )
         assertEquals(
             InvalidRpcCall(REX_CALL_TYPE, "no module"),
@@ -154,11 +188,45 @@ internal class TypeAwareCallBodyParserTest {
     }
 
     @Test
-    fun `function is not an atom - invalid rpc call`() {
+    fun `function is a bstring - invalid rpc call`() {
         val call = tuple(
             CALL,
             atom("foo"),
             bstring("bar")
+        )
+        assertEquals(
+            InvalidRpcCall(REX_CALL_TYPE, "no function"),
+            parser.parse(call, REX_CALL_TYPE)
+        )
+        assertEquals(
+            InvalidRpcCall(GEN_CALL_TYPE, "no function"),
+            parser.parse(call, GEN_CALL_TYPE)
+        )
+    }
+
+    @Test
+    fun `function is a list - invalid rpc call`() {
+        val call = tuple(
+            CALL,
+            atom("foo"),
+            list(ATOM_TRUE)
+        )
+        assertEquals(
+            InvalidRpcCall(REX_CALL_TYPE, "no function"),
+            parser.parse(call, REX_CALL_TYPE)
+        )
+        assertEquals(
+            InvalidRpcCall(GEN_CALL_TYPE, "no function"),
+            parser.parse(call, GEN_CALL_TYPE)
+        )
+    }
+
+    @Test
+    fun `function is a map - invalid rpc call`() {
+        val call = tuple(
+            CALL,
+            atom("foo"),
+            map(ATOM_TRUE, ATOM_FALSE)
         )
         assertEquals(
             InvalidRpcCall(REX_CALL_TYPE, "no function"),
