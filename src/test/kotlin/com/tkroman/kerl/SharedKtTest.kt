@@ -11,6 +11,12 @@ import kotlin.test.assertNull
 internal class SharedKtTest {
     @Test
     fun `eget on invalid indexes`() {
+        assertNull(list().eget(-1))
+        assertNull(tuple().eget(-1))
+        assertNull(map().eget(-1))
+        assertNull(atom("doesnt-even-make-sense").eget(-1))
+        assertNull(bstring("doesnt-even-make-sense").eget(-1))
+
         assertNull(list().eget(0))
         assertNull(tuple().eget(0))
         assertNull(map().eget(0))
