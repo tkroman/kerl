@@ -14,11 +14,10 @@ import io.mockk.every
 import io.mockk.excludeRecords
 import io.mockk.mockk
 import io.mockk.verify
-import io.mockk.verifyOrder
 import org.awaitility.kotlin.await
-import org.junit.jupiter.api.AfterEach
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import kotlin.test.AfterTest
 import kotlin.test.Test
 
 internal class RpcReceiverTest {
@@ -26,7 +25,7 @@ internal class RpcReceiverTest {
     private val executor = mockk<RpcExecutor>()
     private val rpcReceiver = RpcReceiver(mailbox, executor)
 
-    @AfterEach
+    @AfterTest
     fun cleanUp() {
         rpcReceiver.close()
     }

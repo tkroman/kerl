@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
     kotlin("jvm") version "1.5.10"
 }
 
@@ -34,5 +35,17 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         jvmTarget = "1.8"
         languageVersion = "1.5"
         apiVersion = "1.5"
+    }
+}
+
+tasks.withType<JacocoReport> {
+    executionData(
+        fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+    )
+    reports {
+        xml.isEnabled = true
+        html.isEnabled = false
+        csv.isEnabled = false
+        xml.destination = file("${buildDir}/reports/jacoco/report.xml")
     }
 }

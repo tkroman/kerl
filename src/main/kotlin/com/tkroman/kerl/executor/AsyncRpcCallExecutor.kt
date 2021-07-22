@@ -9,7 +9,7 @@ import java.util.concurrent.Executors
  * This is very naive for now (just delegates to sync executor),
  * we may do better in future (no pun intended).
  */
-class AsyncRpcExecutor(
+class AsyncRpcCallExecutor(
     private val syncRpcCallExecutor: SyncRpcCallExecutor
 ) : RpcExecutor {
     private val executor = Executors.newWorkStealingPool()

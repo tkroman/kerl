@@ -19,13 +19,19 @@ class RpcReceiver(
     private val pollForExecution: () -> Unit = {
         val received = source.receive(1, TimeUnit.MILLISECONDS)
         if (received != null) {
-            rpcExecutor.execute(received.body).handle { r, t ->
-                when {
-                    t != null -> logger.error("Failed to execute $received", t)
-                    r == null -> logger.error("Can't reply to $received - failed to parse")
-                    else -> source.send(r.first, r.second)
+            rpcExecutor
+                .execute(received.body)
+                .handle { r, t ->
+                    // ok to do this w/o handleAsync because source.send is just
+                    // an enqueue() under the hood. It can block but this is network-layer blocking
+                    // (meaning if outgoing queue is full, we don't want to receive new requests yet)
+                    // so this is fine. This can be changed in the future if we decide this is non-optimal.
+                    when {
+                        t != null -> logger.error("Failed to execute $received", t)
+                        r == null -> logger.error("Can't reply to $received - failed to parse")
+                        else -> source.send(r.first, r.second)
+                    }
                 }
-            }
         }
     }
 
