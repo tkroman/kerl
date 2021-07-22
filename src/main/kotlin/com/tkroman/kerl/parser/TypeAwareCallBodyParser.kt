@@ -23,7 +23,7 @@ class TypeAwareCallBodyParser {
         val module = call
             .eget(1)
             ?.asAtom()
-            ?.asText()
+            ?.asText(null)
             ?.takeIf { it.isNotBlank() }
             ?: return InvalidRpcCall(callType, "no module")
 
