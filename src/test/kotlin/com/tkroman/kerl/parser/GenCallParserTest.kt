@@ -29,6 +29,14 @@ internal class GenCallParserTest {
     }
 
     @Test
+    fun `not a gen_call - invalid call`() {
+        assertEquals(
+            InvalidRpcCall(Unknown, "not a gen_call"),
+            genCallParser.parse(tuple(atom("not_a_gen_call")))
+        )
+    }
+
+    @Test
     fun `no pid-ref pair - invalid call`() {
         val result = genCallParser.parse(
             tuple(

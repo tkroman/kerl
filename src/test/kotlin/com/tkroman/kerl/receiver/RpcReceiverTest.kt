@@ -19,6 +19,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 internal class RpcReceiverTest {
     private val mailbox = mockk<Mailbox>()
@@ -28,6 +30,19 @@ internal class RpcReceiverTest {
     @AfterTest
     fun cleanUp() {
         rpcReceiver.close()
+    }
+
+    @Test
+    fun `throws if failed to start`() {
+        every { mailbox.receive(any(), any()) }.returns(null)
+        val executor = RpcReceiver(mailbox, executor)
+        executor.start()
+        assertFailsWith<IllegalStateException> { executor.start() }.also {
+            assertEquals(
+                "Couldn't start RpcReceiver. Make sure it was stopped correctly before reuse",
+                it.message
+            )
+        }
     }
 
     @Test

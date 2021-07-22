@@ -20,10 +20,18 @@ class TypeAwareCallBodyParser {
         if (call.eget(0) != CALL) {
             return InvalidRpcCall(callType, "invalid call section")
         }
-        val module = call.eget(1)?.asAtom()?.asText()?.takeIf { it.isNotBlank() }
+        val module = call
+            .eget(1)
+            ?.asAtom()
+            ?.asText()
+            ?.takeIf { it.isNotBlank() }
             ?: return InvalidRpcCall(callType, "no module")
 
-        val function = call.eget(2)?.asAtom()?.asText()?.takeIf { it.isNotBlank() }
+        val function = call
+            .eget(2)
+            ?.asAtom()
+            ?.asText()
+            ?.takeIf { it.isNotBlank() }
             ?: return InvalidRpcCall(callType, "no function")
 
         val args = call.eget(3)

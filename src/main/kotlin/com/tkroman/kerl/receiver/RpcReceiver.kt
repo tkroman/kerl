@@ -57,7 +57,7 @@ class RpcReceiver(
                 TimeUnit.MILLISECONDS
             )
         )
-        require(started) {
+        check(started) {
             "Couldn't start RpcReceiver. Make sure it was stopped correctly before reuse"
         }
     }
