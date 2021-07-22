@@ -12,11 +12,13 @@ internal val CALL = atom("call")
 internal val REX = atom("rex")
 
 internal fun ErlangTerm.eget(i: Int): ErlangTerm? {
-    return if ((isList || isTuple) && (i >= 0 && i < size())) {
-        getUnsafe(i)
-    } else {
-        null
+    if (!(isList || isTuple)) {
+        return null
     }
+    if (i < 0 || i > size()) {
+        return null
+    }
+    return getUnsafe(i)
 }
 
 internal fun badrpc(why: String): ErlangTuple {
