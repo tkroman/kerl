@@ -4,6 +4,8 @@ import com.tkroman.kerl.CALL
 import com.tkroman.kerl.GEN_CALL_TYPE
 import com.tkroman.kerl.REX_CALL_TYPE
 import com.tkroman.kerl.model.InvalidRpcCall
+import com.tkroman.kerl.model.RpcCall
+import com.tkroman.kerl.model.RpcCallType
 import com.tkroman.kerl.model.RpcMethod
 import com.tkroman.kerl.model.Unknown
 import com.tkroman.kerl.model.ValidRpcCall
@@ -15,11 +17,20 @@ import io.appulse.encon.terms.Erlang.map
 import io.appulse.encon.terms.Erlang.tuple
 import io.appulse.encon.terms.type.ErlangAtom.ATOM_FALSE
 import io.appulse.encon.terms.type.ErlangAtom.ATOM_TRUE
+import io.appulse.encon.terms.type.ErlangTuple
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class TypeAwareCallBodyParserTest {
     private val parser = TypeAwareCallBodyParser()
+
+    private fun assertBoth(
+        call: ErlangTuple,
+        expected: (RpcCallType) -> RpcCall,
+    ) {
+        assertEquals(expected(REX_CALL_TYPE), parser.parse(call, REX_CALL_TYPE))
+        assertEquals(expected(GEN_CALL_TYPE), parser.parse(call, GEN_CALL_TYPE))
+    }
 
     @Test
     fun `happy path - non-empty args`() {
@@ -29,14 +40,7 @@ internal class TypeAwareCallBodyParserTest {
             atom("bar"),
             list(ATOM_TRUE),
         )
-        assertEquals(
-            ValidRpcCall(REX_CALL_TYPE, RpcMethod("foo", "bar"), list(ATOM_TRUE)),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            ValidRpcCall(GEN_CALL_TYPE, RpcMethod("foo", "bar"), list(ATOM_TRUE)),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { ValidRpcCall(it, RpcMethod("foo", "bar"), list(ATOM_TRUE)) }
     }
 
     @Test
@@ -46,14 +50,7 @@ internal class TypeAwareCallBodyParserTest {
             atom("foo"),
             atom("bar"),
         )
-        assertEquals(
-            ValidRpcCall(REX_CALL_TYPE, RpcMethod("foo", "bar"), list()),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            ValidRpcCall(GEN_CALL_TYPE, RpcMethod("foo", "bar"), list()),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { ValidRpcCall(it, RpcMethod("foo", "bar"), list()) }
     }
 
     @Test
@@ -64,14 +61,7 @@ internal class TypeAwareCallBodyParserTest {
             atom("bar"),
             NIL,
         )
-        assertEquals(
-            ValidRpcCall(REX_CALL_TYPE, RpcMethod("foo", "bar"), list()),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            ValidRpcCall(GEN_CALL_TYPE, RpcMethod("foo", "bar"), list()),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { ValidRpcCall(it, RpcMethod("foo", "bar"), list()) }
     }
 
     @Test
@@ -82,14 +72,7 @@ internal class TypeAwareCallBodyParserTest {
             atom("bar"),
             atom("not a list")
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "invalid arguments"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "invalid arguments"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "invalid arguments") }
     }
 
     @Test
@@ -98,14 +81,7 @@ internal class TypeAwareCallBodyParserTest {
             CALL,
             atom("foo"),
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no function"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no function"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no function") }
     }
 
     @Test
@@ -113,14 +89,7 @@ internal class TypeAwareCallBodyParserTest {
         val call = tuple(
             CALL,
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no module"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no module"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no module") }
     }
 
     @Test
@@ -129,14 +98,7 @@ internal class TypeAwareCallBodyParserTest {
             CALL,
             bstring("not-an-atom")
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no module"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no module"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no module") }
     }
 
     @Test
@@ -145,14 +107,9 @@ internal class TypeAwareCallBodyParserTest {
             CALL,
             list(ATOM_TRUE)
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no module"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no module"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) {
+            InvalidRpcCall(it, "no module")
+        }
     }
 
     @Test
@@ -161,14 +118,7 @@ internal class TypeAwareCallBodyParserTest {
             CALL,
             map(ATOM_TRUE, ATOM_FALSE)
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no module"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no module"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no module") }
     }
 
     @Test
@@ -177,14 +127,7 @@ internal class TypeAwareCallBodyParserTest {
             CALL,
             atom("")
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no module"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no module"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no module") }
     }
 
     @Test
@@ -194,14 +137,7 @@ internal class TypeAwareCallBodyParserTest {
             atom("foo"),
             bstring("bar")
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no function"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no function"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no function") }
     }
 
     @Test
@@ -211,14 +147,7 @@ internal class TypeAwareCallBodyParserTest {
             atom("foo"),
             list(ATOM_TRUE)
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no function"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no function"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no function") }
     }
 
     @Test
@@ -228,14 +157,7 @@ internal class TypeAwareCallBodyParserTest {
             atom("foo"),
             map(ATOM_TRUE, ATOM_FALSE)
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no function"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no function"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no function") }
     }
 
     @Test
@@ -245,27 +167,13 @@ internal class TypeAwareCallBodyParserTest {
             atom("foo"),
             atom("")
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "no function"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "no function"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "no function") }
     }
 
     @Test
     fun `no call - invalid rpc call`() {
         val call = tuple()
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "invalid call section"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "invalid call section"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) { InvalidRpcCall(it, "invalid call section") }
     }
 
     @Test
@@ -273,14 +181,9 @@ internal class TypeAwareCallBodyParserTest {
         val call = tuple(
             atom("something-else")
         )
-        assertEquals(
-            InvalidRpcCall(REX_CALL_TYPE, "invalid call section"),
-            parser.parse(call, REX_CALL_TYPE)
-        )
-        assertEquals(
-            InvalidRpcCall(GEN_CALL_TYPE, "invalid call section"),
-            parser.parse(call, GEN_CALL_TYPE)
-        )
+        assertBoth(call) {
+            InvalidRpcCall(it, "invalid call section")
+        }
     }
 
     @Test
