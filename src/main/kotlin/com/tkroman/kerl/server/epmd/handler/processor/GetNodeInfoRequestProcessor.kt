@@ -11,7 +11,7 @@ internal class GetNodeInfoRequestProcessor(
     socket: Socket,
     private val server: InProcessEpmdServer,
 ) : RequestProcessor<GetNodeInfo>(request, socket) {
-    override fun respond(): Response? {
+    override fun respond(): Response {
         return server.getNode(request.name)
             ?.let {
                 NodeInfo(

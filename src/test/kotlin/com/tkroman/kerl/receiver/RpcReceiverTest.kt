@@ -9,6 +9,7 @@ import io.appulse.encon.mailbox.Mailbox
 import io.appulse.encon.terms.type.ErlangAtom.ATOM_FALSE
 import io.appulse.encon.terms.type.ErlangAtom.ATOM_TRUE
 import io.appulse.encon.terms.type.ErlangPid
+import io.mockk.Called
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.excludeRecords
@@ -73,6 +74,16 @@ internal class RpcReceiverTest {
                 verify(atLeast = 1) { mailbox.receive(1L, TimeUnit.MILLISECONDS) }
                 verify(exactly = 1) { executor.execute(ATOM_TRUE) }
                 verify(exactly = 1) { mailbox.send(SENDER_PID, ATOM_FALSE) }
+            }
+
+        rpcReceiver.close()
+        await
+            .pollDelay(5, TimeUnit.MILLISECONDS)
+            .pollInterval(5, TimeUnit.MILLISECONDS)
+            .timeout(1, TimeUnit.SECONDS)
+            .during(500, TimeUnit.MILLISECONDS)
+            .untilAsserted {
+                verify { mailbox.receive().wasNot(Called) }
             }
         excludeRecords { mailbox.receive(1L, TimeUnit.MILLISECONDS) }
         confirmVerified(mailbox, executor)

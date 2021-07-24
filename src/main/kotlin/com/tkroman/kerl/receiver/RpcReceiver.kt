@@ -64,9 +64,10 @@ class RpcReceiver(
 
     override fun close() {
         synchronized(this) {
-            if (scheduled != null) {
-                scheduled?.cancel(true)
+            scheduled?.also {
+                it.cancel(true)
             }
+            scheduled = null
         }
     }
 }

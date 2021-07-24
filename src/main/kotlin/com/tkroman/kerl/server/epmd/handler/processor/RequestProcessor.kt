@@ -12,17 +12,12 @@ internal abstract class RequestProcessor<R : Request>(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
     fun process() {
-        respond()
-            ?.also {
-                send(it)
-                afterSend(it)
-            }
-            ?: run {
-                socket.close()
-            }
+        val response = respond()
+        send(response)
+        afterSend(response)
     }
 
-    protected abstract fun respond(): Response?
+    protected abstract fun respond(): Response
 
     private fun send(response: Response) {
         logger.debug("sending a response to {}", socket.remoteSocketAddress)

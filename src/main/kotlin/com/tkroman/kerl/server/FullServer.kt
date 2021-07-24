@@ -13,10 +13,12 @@ class FullServer(
     fun start() {
         epmdServer.start()
         node.start()
-        rpcReceiver.start(node.mailbox())
+        val mailbox = node.mailbox()
+        rpcReceiver.start(mailbox)
     }
 
     fun stop() {
+        rpcReceiver.close()
         node.mailbox().close()
         node.stop()
         epmdServer.stop()
