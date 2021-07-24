@@ -25,7 +25,7 @@ import kotlin.test.assertFailsWith
 internal class RpcReceiverTest {
     private val mailbox = mockk<Mailbox>()
     private val executor = mockk<RpcExecutor>()
-    private val rpcReceiver = RpcReceiver(mailbox, executor)
+    private val rpcReceiver = RpcReceiver(executor)
 
     @AfterTest
     fun cleanUp() {
@@ -35,9 +35,9 @@ internal class RpcReceiverTest {
     @Test
     fun `throws if failed to start`() {
         every { mailbox.receive(any(), any()) }.returns(null)
-        val executor = RpcReceiver(mailbox, executor)
-        executor.start()
-        assertFailsWith<IllegalStateException> { executor.start() }.also {
+        val executor = RpcReceiver(executor)
+        executor.start(mailbox)
+        assertFailsWith<IllegalStateException> { executor.start(mailbox) }.also {
             assertEquals(
                 "Couldn't start RpcReceiver. Make sure it was stopped correctly before reuse",
                 it.message
@@ -62,7 +62,7 @@ internal class RpcReceiverTest {
                 )
             )
         every { mailbox.send(SENDER_PID, ATOM_FALSE) }.returns(Unit)
-        rpcReceiver.start()
+        rpcReceiver.start(mailbox)
 
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
@@ -93,7 +93,7 @@ internal class RpcReceiverTest {
                 CompletableFuture.failedFuture(IllegalStateException("foo"))
             )
         every { mailbox.send(SENDER_PID, ATOM_FALSE) }.returns(Unit)
-        rpcReceiver.start()
+        rpcReceiver.start(mailbox)
 
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
@@ -124,7 +124,7 @@ internal class RpcReceiverTest {
                 CompletableFuture.completedFuture(null)
             )
         every { mailbox.send(SENDER_PID, ATOM_FALSE) }.returns(Unit)
-        rpcReceiver.start()
+        rpcReceiver.start(mailbox)
 
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)

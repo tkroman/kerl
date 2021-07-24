@@ -1,4 +1,4 @@
-# kerl - Erlang / Elixir PRC on JVM
+# kerl - Erlang / Elixir RPC on JVM
 
 ---
 
