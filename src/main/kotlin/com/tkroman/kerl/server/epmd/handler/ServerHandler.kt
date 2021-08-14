@@ -33,42 +33,29 @@ internal class ServerHandler(
             val requestBytes = SocketUtils.read(socket, requestLength.toInt())
             val request = Request.parse<Request>(requestBytes, requestLength.toInt())
             logger.debug("Request: $request")
-            findProcessor(request, socket)?.also {
-                logger.debug("request processor is ${it.javaClass.simpleName}", )
-                it.process()
-            }
+            val processor = findProcessor(request)
+            logger.debug("Request processor is ${processor.javaClass.simpleName}", )
+            processor.process()
         } catch (ex: Exception) {
-            logger.error("connection error", ex)
+            logger.error("Connection error", ex)
         }
     }
 
     private fun findProcessor(
         request: Request,
-        clientSocket: Socket
-    ): RequestProcessor<*>? {
+    ): RequestProcessor<*> {
         return when (request.tag) {
             Tag.ALIVE2_REQUEST -> RegistrationRequestProcessor(
                 request as Registration,
-                clientSocket,
+                socket,
                 server
             )
-            Tag.DUMP_REQUEST -> DumpRequestProcessor(request as GetEpmdDump, clientSocket, server)
-            Tag.KILL_REQUEST -> KillRequestProcessor(request as Kill, clientSocket, server)
-            Tag.PORT_PLEASE2_REQUEST -> GetNodeInfoRequestProcessor(
-                request as GetNodeInfo,
-                clientSocket,
-                server
-            )
-            Tag.NAMES_REQUEST -> GetEpmdInfoRequestProcessor(
-                request as GetEpmdInfo,
-                clientSocket,
-                server
-            )
-            Tag.STOP_REQUEST -> StopRequestProcessor(request as Stop, clientSocket, server)
-            else -> {
-                logger.warn("unsupported request tag ${request.tag}")
-                null
-            }
+            Tag.DUMP_REQUEST -> DumpRequestProcessor(request as GetEpmdDump, socket, server)
+            Tag.KILL_REQUEST -> KillRequestProcessor(request as Kill, socket, server)
+            Tag.PORT_PLEASE2_REQUEST -> GetNodeInfoRequestProcessor(request as GetNodeInfo, socket, server)
+            Tag.NAMES_REQUEST -> GetEpmdInfoRequestProcessor(request as GetEpmdInfo, socket, server)
+            Tag.STOP_REQUEST -> StopRequestProcessor(request as Stop, socket, server)
+            else -> throw IllegalArgumentException("unsupported request tag ${request.tag}")
         }
     }
 }
