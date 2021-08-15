@@ -27,7 +27,11 @@ class RpcReceiver(
                     when {
                         t != null -> logger.error("Failed to execute $received", t)
                         r == null -> logger.error("Can't reply to $received - failed to parse")
-                        else -> source.send(r.first, r.second)
+                        else -> try {
+                            source.send(r.first, r.second)
+                        } catch (e: Exception) {
+                            logger.error("Failed to send", e)
+                        }
                     }
                 }
         }

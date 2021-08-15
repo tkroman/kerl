@@ -10,6 +10,7 @@ import java.io.Closeable
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.net.SocketException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -74,13 +75,21 @@ class InProcessEpmdServer(
                     }
                     logger.debug("$remoteAddress - a new incoming connection")
                     epmdExecutor.execute(ServerHandler(clientSocket, this))
-                } catch (e: Exception) {
-                    logger.warn("Exception in server's accept loop", e)
+                } catch (e: InterruptedException) {
+                    logger.info("Interrupted, exiting run loop")
+                    break
+                } catch (e: SocketException) {
+                    if (e.message == "Socket closed") {
+                        logger.info("Socket closed, exiting run loop")
+                        break
+                    } else {
+                        throw e
+                    }
                 }
             }
         }
         serverSocket = null
-        logger.info("Server socket closed, EPMD run completed")
+        logger.info("EPMD run completed")
     }
 
     private fun InetAddress.allowed() =

@@ -11,11 +11,14 @@ import java.io.Closeable
 import java.net.InetAddress
 import java.util.concurrent.ArrayBlockingQueue
 
-private const val REX_MAILBOX = "rex"
 
 class EnconKerlNode(
     private val config: KerlServerConfig
 ) : KerlNode, Closeable {
+    companion object {
+        private const val REX_MAILBOX = "rex"
+    }
+
     private var node: Node? = null
 
     override fun start() {
@@ -68,5 +71,4 @@ class EnconKerlNode(
             Defaults.INSTANCE.compression,
         )
     }
-
 }
