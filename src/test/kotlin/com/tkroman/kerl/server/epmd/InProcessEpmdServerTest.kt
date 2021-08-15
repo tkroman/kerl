@@ -6,11 +6,8 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.net.InetSocketAddress
-import java.net.Socket
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -18,33 +15,14 @@ import kotlin.test.assertTrue
 internal class InProcessEpmdServerTest {
     @Test
     fun `start-stop`() {
-        val port = 9091
+        val port = 9090
         val host = "127.0.0.1"
         val config = KerlServerConfig.EpmdConfig(
             port,
             host,
             false
         )
-        InProcessEpmdServer(config).use { server ->
-            server.start()
-            assertTrue(
-                kotlin.runCatching {
-                    Socket().use {
-                        it.connect(InetSocketAddress(host, port), 4000)
-                        true
-                    }
-                }.getOrElse { false }
-            )
-
-        }
-        assertFalse(
-            kotlin.runCatching {
-                Socket().use {
-                    it.connect(InetSocketAddress(host, port), 500)
-                    true
-                }
-            }.getOrElse { false }
-        )
+        InProcessEpmdServer(config).use { server -> server.start() }
     }
 
     @Test
