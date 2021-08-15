@@ -30,7 +30,7 @@ internal class InProcessEpmdServerTest {
             assertTrue(
                 kotlin.runCatching {
                     Socket().use {
-                        it.connect(InetSocketAddress(host, port), 2000)
+                        it.connect(InetSocketAddress(host, port), 4000)
                         true
                     }
                 }.getOrElse { false }
@@ -40,7 +40,7 @@ internal class InProcessEpmdServerTest {
         assertFalse(
             kotlin.runCatching {
                 Socket().use {
-                    it.connect(InetSocketAddress(host, port), 2000)
+                    it.connect(InetSocketAddress(host, port), 500)
                     true
                 }
             }.getOrElse { false }
