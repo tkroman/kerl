@@ -6,6 +6,7 @@ import com.tkroman.kerl.server.epmd.handler.ServerHandler
 import io.appulse.utils.threads.AppulseExecutors
 import io.appulse.utils.threads.AppulseThreadFactory
 import org.slf4j.LoggerFactory
+import java.io.Closeable
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -18,7 +19,7 @@ private val LOCALHOST = InetAddress.getLocalHost()
 
 class InProcessEpmdServer(
     internal val config: KerlServerConfig.EpmdConfig,
-) : EpmdServer {
+) : EpmdServer, Closeable {
     private val logger = LoggerFactory.getLogger(InProcessEpmdServer::class.java)
     private val ip = InetAddress.getByName(config.host)
     private val nodes = ConcurrentHashMap<String, NodeHandle>()
@@ -32,6 +33,7 @@ class InProcessEpmdServer(
         .build()
 
     private var serverThread: Thread? = null
+    private var serverSocket: ServerSocket? = null
 
     override fun start() {
         synchronized(this) {
@@ -39,8 +41,13 @@ class InProcessEpmdServer(
         }
     }
 
+    override fun close() {
+        stop()
+    }
+
     override fun stop() {
         synchronized(this) {
+            serverSocket?.close()
             serverThread?.interrupt()
             serverThread = null
             epmdExecutor.shutdown()
@@ -50,31 +57,38 @@ class InProcessEpmdServer(
     }
 
     private fun runEpmd() {
-        ServerSocket(config.port, 1024).use { serverSocket ->
+        serverSocket = ServerSocket(config.port, 1024)
+        serverSocket?.use { serverSocket ->
             logger.info("EPMD server started (config: $config)")
-            while (serverThread?.isInterrupted != true) {
-                val clientSocket = serverSocket.accept()
-                val remoteAddress = (clientSocket.remoteSocketAddress as? InetSocketAddress)?.address
-                if (remoteAddress == null) {
-                    logger.warn("Remote address is null, ignore")
-                    continue
-                } else if (remoteAddress.allowed()) {
-                    clientSocket.close()
-                    logger.warn("Unacceptable remote client's address $remoteAddress")
-                    continue
+            while (serverThread?.isInterrupted == false) {
+                try {
+                    val clientSocket = serverSocket.accept()
+                    val remoteAddress = (clientSocket.remoteSocketAddress as? InetSocketAddress)?.address
+                    if (remoteAddress == null) {
+                        logger.warn("Remote address is null, ignore")
+                        continue
+                    } else if (remoteAddress.allowed()) {
+                        clientSocket.close()
+                        logger.warn("Unacceptable remote client's address $remoteAddress")
+                        continue
+                    }
+                    logger.debug("$remoteAddress - a new incoming connection")
+                    epmdExecutor.execute(ServerHandler(clientSocket, this))
+                } catch (e: Exception) {
+                    logger.warn("Exception in server's accept loop", e)
                 }
-                logger.debug("$remoteAddress - a new incoming connection")
-                epmdExecutor.execute(ServerHandler(clientSocket, this))
             }
         }
+        serverSocket = null
+        logger.info("Server socket closed, EPMD run completed")
     }
 
     private fun InetAddress.allowed() =
         ip != ANY_ADDRESS && this != ip && this != LOOPBACK_ADDRESS && this != LOCALHOST
 
-    internal fun getNodes(): Iterable<NodeHandle> {
+    internal fun getNodes(): List<NodeHandle> {
         nodes.entries.removeIf { (_, value) -> !value.isAlive }
-        return nodes.values
+        return nodes.values.toList()
     }
 
     internal fun getNode(name: String): NodeHandle? {
