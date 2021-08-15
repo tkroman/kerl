@@ -39,7 +39,7 @@ internal class RegistrationRequestProcessorTest {
                             it.creation in (1 .. 3)
                 }
             )
-        }.returns(true)
+        }.returns(Unit)
         every { socket.remoteSocketAddress }.returns(InetSocketAddress(999))
         every { socket.getOutputStream().flush() }.returns(Unit)
         every {
@@ -66,39 +66,6 @@ internal class RegistrationRequestProcessorTest {
                 }
             )
         }
-        confirmVerified(socket)
-    }
-
-    @Test
-    fun `response on failed node registration`() {
-        val processor = RegistrationRequestProcessor(
-            Registration(1010, NodeType.R6_ERLANG, Protocol.TCP, Version.R6, Version.R6, "new", byteArrayOf()),
-            socket,
-            server
-        )
-        every { server.config.port }.returns(1234)
-        every {
-            server.addNode(
-                match {
-                    it.name == "new" &&
-                            it.port == 1010 &&
-                            it.type == NodeType.R6_ERLANG &&
-                            it.protocol == Protocol.TCP &&
-                            it.high == Version.R6 &&
-                            it.low == Version.R6 &&
-                            it.creation in (1 .. 3)
-                }
-            )
-        }.returns(false)
-        every { socket.remoteSocketAddress }.returns(InetSocketAddress(999))
-        every { socket.getOutputStream().flush() }.returns(Unit)
-        val response = RegistrationResult(false, 0).toBytes()
-        every { socket.getOutputStream().write(response) }.returns(Unit)
-        every { socket.close() }.returns(Unit)
-        processor.process()
-        verify { socket.remoteSocketAddress }
-        verify(exactly = 1) { socket.close() }
-        verify { socket.getOutputStream().write(response) }
         confirmVerified(socket)
     }
 }

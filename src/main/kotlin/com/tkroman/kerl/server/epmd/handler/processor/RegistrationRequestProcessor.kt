@@ -23,11 +23,8 @@ internal class RegistrationRequestProcessor(
             (System.currentTimeMillis() % 3 + 1).toInt(),
             socket,
         )
-        val added = parent.addNode(node)
-        return RegistrationResult(
-            added,
-            node.creation.takeIf { added } ?: 0
-        )
+        parent.addNode(node)
+        return RegistrationResult(true, node.creation)
     }
 
     override fun afterSend(response: Response) {

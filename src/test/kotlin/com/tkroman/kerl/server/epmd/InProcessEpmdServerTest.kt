@@ -11,6 +11,7 @@ import java.net.Socket
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -53,21 +54,10 @@ internal class InProcessEpmdServerTest {
             val node = mockk<NodeHandle>()
             every { node.isAlive }.returns(true)
             every { node.name }.returns("name")
-            assertTrue(server.addNode(node))
+            server.addNode(node)
+            assertNotNull(server.getNode("name"))
             verify { node.isAlive }
             verify { node.name }
-            confirmVerified(node)
-        }
-    }
-
-    @Test
-    fun `node add fail`() {
-        InProcessEpmdServer(KerlServerConfig.EpmdConfig(9090, "127.0.0.1", false)).use { server ->
-            server.start()
-            val node = mockk<NodeHandle>()
-            every { node.isAlive }.returns(false)
-            assertFalse(server.addNode(node))
-            verify { node.isAlive }
             confirmVerified(node)
         }
     }
@@ -79,7 +69,7 @@ internal class InProcessEpmdServerTest {
             val node = mockk<NodeHandle>()
             every { node.isAlive }.returns(true)
             every { node.name }.returns("node0")
-            assertTrue(server.addNode(node))
+            server.addNode(node)
             assertEquals(node, server.getNode("node0"))
             assertEquals(listOf(node), server.getNodes())
             verify { node.isAlive }
@@ -94,9 +84,9 @@ internal class InProcessEpmdServerTest {
         InProcessEpmdServer(KerlServerConfig.EpmdConfig(9090, "127.0.0.1", false)).use { server ->
             server.start()
             val node = mockk<NodeHandle>()
-            every { node.isAlive }.returns(true).andThen(false)
+            every { node.isAlive }.returns(false)
             every { node.name }.returns("node0")
-            assertTrue(server.addNode(node))
+            server.addNode(node)
             assertNull(server.getNode("node0"))
             assertTrue(server.getNodes().isEmpty())
             verify { node.isAlive }
@@ -130,7 +120,7 @@ internal class InProcessEpmdServerTest {
             val node = mockk<NodeHandle>()
             every { node.isAlive }.returns(true)
             every { node.name }.returns("node0")
-            assertTrue(server.addNode(node))
+            server.addNode(node)
             assertEquals(node, server.removeNode("node0"))
             assertNull(server.getNode("node0"))
             assertTrue(server.getNodes().isEmpty())

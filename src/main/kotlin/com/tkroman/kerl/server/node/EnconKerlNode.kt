@@ -7,6 +7,7 @@ import io.appulse.encon.config.Defaults
 import io.appulse.encon.config.NodeConfig
 import io.appulse.encon.config.ServerConfig
 import io.appulse.encon.mailbox.Mailbox
+import java.io.Closeable
 import java.net.InetAddress
 import java.util.concurrent.ArrayBlockingQueue
 
@@ -14,7 +15,7 @@ private const val REX_MAILBOX = "rex"
 
 class EnconKerlNode(
     private val config: KerlServerConfig
-) : KerlNode {
+) : KerlNode, Closeable {
     private var node: Node? = null
 
     override fun start() {
@@ -24,6 +25,10 @@ class EnconKerlNode(
                 nodeConfig()
             )
         }
+    }
+
+    override fun close() {
+        stop()
     }
 
     override fun stop() {
@@ -45,8 +50,8 @@ class EnconKerlNode(
 
     private fun nodeConfig(): NodeConfig {
         return NodeConfig(
-            config.node.port,
-            InetAddress.getByName(config.node.host),
+            config.epmd.port,
+            InetAddress.getByName(config.epmd.host),
             Defaults.INSTANCE.type,
             config.node.shortName,
             config.node.cookie,

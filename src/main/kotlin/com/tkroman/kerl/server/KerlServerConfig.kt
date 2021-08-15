@@ -12,8 +12,6 @@ data class KerlServerConfig(
     )
 
     data class NodeConfig(
-        val port: Int,
-        val host: String,
         val name: String,
         val cookie: String,
         val shortName: Boolean,

@@ -95,16 +95,11 @@ class InProcessEpmdServer(
         return nodes[name]?.takeIf { it.isAlive }
     }
 
-    internal fun addNode(node: NodeHandle): Boolean {
-        return if (node.isAlive) {
-            nodes.computeIfAbsent(node.name) { node }
-            true
-        } else {
-            false
-        }
+    internal fun addNode(node: NodeHandle) {
+        nodes.computeIfAbsent(node.name) { node }
     }
 
     internal fun removeNode(name: String): NodeHandle? {
-        return nodes.remove(name)
+        return nodes.remove(name)?.takeIf { it.isAlive }
     }
 }
