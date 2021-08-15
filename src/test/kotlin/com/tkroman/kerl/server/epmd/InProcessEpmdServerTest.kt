@@ -20,23 +20,23 @@ internal class InProcessEpmdServerTest {
     fun `start-stop`() {
         val port = 9090
         val host = "127.0.0.1"
-        val server = InProcessEpmdServer(
-            KerlServerConfig.EpmdConfig(
-                port,
-                host,
-                false
+        val config = KerlServerConfig.EpmdConfig(
+            port,
+            host,
+            false
+        )
+        InProcessEpmdServer(config).use { server ->
+            server.start()
+            assertTrue(
+                kotlin.runCatching {
+                    Socket().use {
+                        it.connect(InetSocketAddress(host, port), 2000)
+                        true
+                    }
+                }.getOrElse { false }
             )
-        )
-        server.start()
-        assertTrue(
-            kotlin.runCatching {
-                Socket().use {
-                    it.connect(InetSocketAddress(host, port), 2000)
-                    true
-                }
-            }.getOrElse { false }
-        )
-        server.stop()
+
+        }
         assertFalse(
             kotlin.runCatching {
                 Socket().use {
