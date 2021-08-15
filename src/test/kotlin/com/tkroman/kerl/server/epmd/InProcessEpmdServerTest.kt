@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 internal class InProcessEpmdServerTest {
     @Test
     fun `start-stop`() {
-        val port = 9090
+        val port = 9091
         val host = "127.0.0.1"
         val config = KerlServerConfig.EpmdConfig(
             port,
