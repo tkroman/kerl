@@ -8,15 +8,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 class RpcReceiver(
-    source: Mailbox,
-    rpcExecutor: RpcExecutor,
+    private val rpcExecutor: RpcExecutor,
 ) : Closeable {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private val pollForExecution: () -> Unit = {
+    private fun pollForExecution(source: Mailbox) {
         val received = source.receive(1, TimeUnit.MILLISECONDS)
         if (received != null) {
             rpcExecutor
@@ -29,7 +27,11 @@ class RpcReceiver(
                     when {
                         t != null -> logger.error("Failed to execute $received", t)
                         r == null -> logger.error("Can't reply to $received - failed to parse")
-                        else -> source.send(r.first, r.second)
+                        else -> try {
+                            source.send(r.first, r.second)
+                        } catch (e: Exception) {
+                            logger.error("Failed to send", e)
+                        }
                     }
                 }
         }
@@ -45,25 +47,32 @@ class RpcReceiver(
         }
     )
 
-    private val scheduled = AtomicReference<ScheduledFuture<*>>(null)
+    private var scheduled: ScheduledFuture<*>? = null
 
-    fun start() {
-        val started = scheduled.compareAndSet(
-            null,
-            poller.scheduleWithFixedDelay(
-                pollForExecution,
-                0L,
-                1L,
-                TimeUnit.MILLISECONDS
-            )
-        )
-        check(started) {
-            "Couldn't start RpcReceiver. Make sure it was stopped correctly before reuse"
+    fun start(source: Mailbox) {
+        synchronized(this) {
+            if (scheduled == null) {
+                scheduled = poller.scheduleWithFixedDelay(
+                    { pollForExecution(source) },
+                    0L,
+                    1L,
+                    TimeUnit.MILLISECONDS
+                )
+            } else {
+                throw IllegalStateException(
+                    "Couldn't start RpcReceiver. Make sure it was stopped correctly before reuse"
+                )
+            }
         }
     }
 
     override fun close() {
-        scheduled.getAndSet(null)?.cancel(true)
+        synchronized(this) {
+            scheduled?.also {
+                it.cancel(true)
+            }
+            scheduled = null
+        }
     }
 }
 

@@ -38,6 +38,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     }
 }
 
+jacoco.toolVersion = "0.8.7"
+
 tasks.withType<JacocoReport> {
     executionData(
         fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")

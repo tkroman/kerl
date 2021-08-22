@@ -27,11 +27,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Test
-        run: ./gradlew --no-daemon test jacocoTestReport
+        run: ./gradlew --no-daemon --info test jacocoTestReport
       - uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true
       - name: Cleanup Gradle Cache
         run: |

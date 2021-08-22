@@ -9,6 +9,7 @@ import io.appulse.encon.mailbox.Mailbox
 import io.appulse.encon.terms.type.ErlangAtom.ATOM_FALSE
 import io.appulse.encon.terms.type.ErlangAtom.ATOM_TRUE
 import io.appulse.encon.terms.type.ErlangPid
+import io.mockk.Called
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.excludeRecords
@@ -25,7 +26,7 @@ import kotlin.test.assertFailsWith
 internal class RpcReceiverTest {
     private val mailbox = mockk<Mailbox>()
     private val executor = mockk<RpcExecutor>()
-    private val rpcReceiver = RpcReceiver(mailbox, executor)
+    private val rpcReceiver = RpcReceiver(executor)
 
     @AfterTest
     fun cleanUp() {
@@ -35,9 +36,9 @@ internal class RpcReceiverTest {
     @Test
     fun `throws if failed to start`() {
         every { mailbox.receive(any(), any()) }.returns(null)
-        val executor = RpcReceiver(mailbox, executor)
-        executor.start()
-        assertFailsWith<IllegalStateException> { executor.start() }.also {
+        val executor = RpcReceiver(executor)
+        executor.start(mailbox)
+        assertFailsWith<IllegalStateException> { executor.start(mailbox) }.also {
             assertEquals(
                 "Couldn't start RpcReceiver. Make sure it was stopped correctly before reuse",
                 it.message
@@ -62,7 +63,7 @@ internal class RpcReceiverTest {
                 )
             )
         every { mailbox.send(SENDER_PID, ATOM_FALSE) }.returns(Unit)
-        rpcReceiver.start()
+        rpcReceiver.start(mailbox)
 
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
@@ -73,6 +74,16 @@ internal class RpcReceiverTest {
                 verify(atLeast = 1) { mailbox.receive(1L, TimeUnit.MILLISECONDS) }
                 verify(exactly = 1) { executor.execute(ATOM_TRUE) }
                 verify(exactly = 1) { mailbox.send(SENDER_PID, ATOM_FALSE) }
+            }
+
+        rpcReceiver.close()
+        await
+            .pollDelay(5, TimeUnit.MILLISECONDS)
+            .pollInterval(5, TimeUnit.MILLISECONDS)
+            .timeout(1, TimeUnit.SECONDS)
+            .during(500, TimeUnit.MILLISECONDS)
+            .untilAsserted {
+                verify { mailbox.receive().wasNot(Called) }
             }
         excludeRecords { mailbox.receive(1L, TimeUnit.MILLISECONDS) }
         confirmVerified(mailbox, executor)
@@ -93,7 +104,7 @@ internal class RpcReceiverTest {
                 CompletableFuture.failedFuture(IllegalStateException("foo"))
             )
         every { mailbox.send(SENDER_PID, ATOM_FALSE) }.returns(Unit)
-        rpcReceiver.start()
+        rpcReceiver.start(mailbox)
 
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
@@ -124,7 +135,7 @@ internal class RpcReceiverTest {
                 CompletableFuture.completedFuture(null)
             )
         every { mailbox.send(SENDER_PID, ATOM_FALSE) }.returns(Unit)
-        rpcReceiver.start()
+        rpcReceiver.start(mailbox)
 
         await
             .pollDelay(5, TimeUnit.MILLISECONDS)
